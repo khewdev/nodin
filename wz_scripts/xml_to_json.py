@@ -16,27 +16,25 @@ def dump_ordered_dict(od, indent_level=0, indent='  '):
             value.replace('\\', '\\\\').replace('"', '\\"')
         )
     if not od.get('$$'):
-        if ret[-1] == ',':
-            return ret[:-1] + '}'
-        return ret + '}'
+        return ret[:-1] + '}' if ret[-1] == ',' else ret + '}'
     child_nodes = [dump_ordered_dict(c, indent_level+1) for c in od['$$']]
     ret += '"$$":[\n'
     for child in child_nodes[:-1]:
-        ret += '{}{},\n'.format(indent*(indent_level+1), child)
-    ret += '{}{}\n'.format(indent*(indent_level+1), child_nodes[-1])
+        ret += f'{indent * (indent_level + 1)}{child},\n'
+    ret += f'{indent * (indent_level + 1)}{child_nodes[-1]}\n'
     return ret + '{}]{}'.format(indent*indent_level, '}')
 
 def xml_to_ordered_dict(xml):
     ret = OrderedDict()
     child_nodes = [xml_to_ordered_dict(child) for child in xml]
-    ret['${}'.format(xml.tag)] = xml.attrib['name']
+    ret[f'${xml.tag}'] = xml.attrib['name']
     for key, value in xml.attrib.items():
-        if key == 'name' or key == 'basedata':
+        if key in ['name', 'basedata']:
             continue
         ret[key] = value
     if xml.attrib.get('basedata'):
         ret['basedata'] = xml.attrib.get('basedata')
-    if len(child_nodes) > 0:
+    if child_nodes:
         ret['$$'] = child_nodes
     return ret
 
